@@ -42,7 +42,7 @@ const waitForUrl = async ({
 
       if (protectionBypassHeader) {
         headers = {
-          'x-vercel-protection-bypass': protectionBypassHeader
+          'x-vercel-protection-bypass': protectionBypassHeader,
         };
       }
 
@@ -54,6 +54,7 @@ const waitForUrl = async ({
       console.log('Received success status code');
       return;
     } catch (e) {
+      console.log(e.toJSON());
       // https://axios-http.com/docs/handling_errors
       if (e.response) {
         console.log(
@@ -144,6 +145,8 @@ const waitForStatus = async ({
         deployment_id,
       });
 
+      console.log(JSON.stringify(statuses, null, 2));
+
       const status = statuses.data.length > 0 && statuses.data[0];
 
       if (!status) {
@@ -225,6 +228,8 @@ const waitForDeploymentToStart = async ({
         environment,
       });
 
+      console.log(JSON.stringify(deployments, null, 2));
+
       const deployment =
         deployments.data.length > 0 &&
         deployments.data.find((deployment) => {
@@ -240,14 +245,14 @@ const waitForDeploymentToStart = async ({
           i + 1
         } / ${iterations})`
       );
-    } catch(e) {
+    } catch (e) {
       console.log(
         `Error while fetching deployments, retrying (attempt ${
           i + 1
         } / ${iterations})`
       );
 
-      console.error(e)
+      console.error(e);
     }
 
     await wait(checkIntervalInMilliseconds);
@@ -271,6 +276,8 @@ async function getShaForPullRequest({ octokit, owner, repo, number }) {
     pull_number: PR_NUMBER,
   });
 
+  console.log(JSON.stringify(currentPR, null, 2));
+
   if (currentPR.status !== 200) {
     core.setFailed('Could not get information about the current pull request');
     return;
@@ -287,7 +294,9 @@ const run = async () => {
     // Inputs
     const GITHUB_TOKEN = core.getInput('token', { required: true });
     const VERCEL_PASSWORD = core.getInput('vercel_password');
-    const VERCEL_PROTECTION_BYPASS_HEADER = core.getInput('vercel_protection_bypass_header');
+    const VERCEL_PROTECTION_BYPASS_HEADER = core.getInput(
+      'vercel_protection_bypass_header'
+    );
     const ENVIRONMENT = core.getInput('environment');
     const MAX_TIMEOUT = Number(core.getInput('max_timeout')) || 60;
     const ALLOW_INACTIVE = Boolean(core.getInput('allow_inactive')) || false;
